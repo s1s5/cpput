@@ -92,6 +92,7 @@
 #include <ctime>
 
 // #define BOOST_STACKTRACE_USE_BACKTRACE
+#define BOOST_STACKTRACE_USE_ADDR2LINE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
