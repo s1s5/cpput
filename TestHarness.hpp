@@ -94,6 +94,11 @@
 namespace cpput
 {
 
+
+struct AssertionFailureException : public std::exception {
+};
+// ----------------------------------------------------------------------------
+
 struct ResultWriter
 {
   virtual ~ResultWriter() {}
@@ -284,6 +289,10 @@ public:
     {
       do_run(result);
     }
+    catch (const ::cpput::AssertionFailureException& e)
+    {
+        // skip
+    }
     catch (const std::exception& e)
     {
       result.addFailure(__FILE__, __LINE__, std::string("Unexpected exception: ").append(e.what()).c_str());
@@ -419,8 +428,8 @@ inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
 { \
   if (!(expression)) \
   { \
-    testResult_.addFailure(__FILE__, __LINE__, #expression); \
-    return; \
+      testResult_.addFailure(__FILE__, __LINE__, #expression);  \
+      throw ::cpput::AssertionFailureException();                  \
   } \
 }
 
@@ -431,7 +440,7 @@ inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
   if (!((expected) == (actual))) \
   { \
     testResult_.addFailure(__FILE__, __LINE__, expected, actual); \
-    return; \
+    throw ::cpput::AssertionFailureException();                            \
   } \
 }
 
@@ -440,7 +449,7 @@ inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
   if (((expected) == (actual))) \
   { \
     testResult_.addFailure(__FILE__, __LINE__, expected, actual); \
-    return; \
+    throw ::cpput::AssertionFailureException();                            \
   } \
 }
 
@@ -448,7 +457,7 @@ inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
   if (!(std::string(expected) == std::string(actual))) \
   { \
     testResult_.addFailure(__FILE__, __LINE__, expected, actual); \
-    return; \
+    throw ::cpput::AssertionFailureException();                            \
   } \
 }
 
@@ -460,7 +469,7 @@ inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
   if ((_tmp_var_diff > epsilon) || (-_tmp_var_diff > epsilon)) \
   { \
     testResult_.addFailure(__FILE__, __LINE__, _tmp_var_expectedTmp, _tmp_var_actualTmp); \
-    return; \
+    throw ::cpput::AssertionFailureException();                         \
   } \
 }
 
