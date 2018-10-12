@@ -124,6 +124,10 @@ public:
       return;
     }
     std::cout << "\n" << failures_ << " out of " << testCount_ << " tests failed.\n";
+    std::string s = ss.str();
+    if (s != "") {
+        std::cout << s << std::flush;
+    }
   }
 
   virtual void startTest(const std::string&, const std::string&)
@@ -143,7 +147,7 @@ public:
   virtual void failure(const std::string& filename, std::size_t line, const std::string& message)
   {
     failures_++;
-    std::cout << "Failure: " << filename << ", line " << line << ": " << message << '\n';
+    ss << "Failure: " << filename << ", line " << line << ": " << message << '\n';
   }
 
   virtual int getNumberOfFailures() const { return failures_; }
@@ -151,6 +155,7 @@ public:
 private:
   int testCount_;
   int failures_;
+    std::stringstream ss;
 };
 
 // ----------------------------------------------------------------------------
@@ -244,7 +249,7 @@ struct Result
     std::stringstream ss;
     ss << std::setprecision(20)
        << "failed comparison, expected " << expected
-       << " got " << actual << "\n";
+       << " got " << actual;
     out_.failure(filename, line, ss.str());
   }
 
