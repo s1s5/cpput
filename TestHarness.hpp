@@ -141,8 +141,9 @@ class TextResultWriter : public ResultWriter {
 
     virtual void failure(const std::string& filename, std::size_t line, const std::string& message) {
         failures_++;
+        ss << "------------------------------------------------------------" << std::endl;
+        ss << "Failure: " << filename << ", line " << line << ": " << message << std::endl;
         ss << boost::stacktrace::stacktrace();
-        ss << "Failure: " << filename << ", line " << line << ": " << message << '\n';
     }
 
     virtual int getNumberOfFailures() const { return failures_; }
@@ -192,11 +193,19 @@ class XmlResultWriter : public ResultWriter {
 };
 
 // ----------------------------------------------------------------------------
-
 struct Result {
+    static Result *current(Result *new_res = nullptr) {
+        static Result *cur = nullptr;
+        if (new_res) {
+            cur = new_res;
+        }
+        return cur;
+    }
+
     void start(const std::string& testClassName, const std::string& testName, ResultWriter& out) {
         out_ = &out;
         out_->startTest(testClassName, testName);
+        current(this);
     }
 
     void end() {
@@ -220,6 +229,7 @@ struct Result {
     ResultWriter* out_;
     bool pass_ = true;
 };
+
 
 // ----------------------------------------------------------------------------
 
@@ -359,7 +369,7 @@ inline int runAllTests(ResultWriter& writer) {
 #define ASSERT_TRUE(expression)                                      \
     {                                                                \
         if (!(expression)) {                                         \
-            testResult_.addFailure(__FILE__, __LINE__, #expression); \
+            ::cpput::Result::current()->addFailure(__FILE__, __LINE__, #expression); \
             throw ::cpput::AssertionFailureException();              \
         }                                                            \
     }
@@ -369,7 +379,7 @@ inline int runAllTests(ResultWriter& writer) {
 #define ASSERT_EQ(expected, actual)                                       \
     {                                                                     \
         if (!((expected) == (actual))) {                                  \
-            testResult_.addFailure(__FILE__, __LINE__, expected, actual); \
+            ::cpput::Result::current()->addFailure(__FILE__, __LINE__, expected, actual); \
             throw ::cpput::AssertionFailureException();                   \
         }                                                                 \
     }
@@ -377,7 +387,7 @@ inline int runAllTests(ResultWriter& writer) {
 #define ASSERT_NEQ(expected, actual)                                      \
     {                                                                     \
         if (((expected) == (actual))) {                                   \
-            testResult_.addFailure(__FILE__, __LINE__, expected, actual); \
+            ::cpput::Result::current()->addFailure(__FILE__, __LINE__, expected, actual); \
             throw ::cpput::AssertionFailureException();                   \
         }                                                                 \
     }
@@ -385,7 +395,7 @@ inline int runAllTests(ResultWriter& writer) {
 #define ASSERT_STREQ(expected, actual)                                    \
     {                                                                     \
         if (!(std::string(expected) == std::string(actual))) {            \
-            testResult_.addFailure(__FILE__, __LINE__, expected, actual); \
+            ::cpput::Result::current()->addFailure(__FILE__, __LINE__, expected, actual); \
             throw ::cpput::AssertionFailureException();                   \
         }                                                                 \
     }
@@ -396,7 +406,7 @@ inline int runAllTests(ResultWriter& writer) {
         double _tmp_var_expectedTmp = expected;                                                   \
         double _tmp_var_diff = _tmp_var_expectedTmp - _tmp_var_actualTmp;                         \
         if ((_tmp_var_diff > epsilon) || (-_tmp_var_diff > epsilon)) {                            \
-            testResult_.addFailure(__FILE__, __LINE__, _tmp_var_expectedTmp, _tmp_var_actualTmp); \
+            ::cpput::Result::current()->addFailure(__FILE__, __LINE__, _tmp_var_expectedTmp, _tmp_var_actualTmp); \
             throw ::cpput::AssertionFailureException();                                           \
         }                                                                                         \
     }
