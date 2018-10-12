@@ -91,6 +91,12 @@
 #include <sstream>
 #include <ctime>
 
+// #define BOOST_STACKTRACE_USE_BACKTRACE
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
+
 namespace cpput
 {
 
@@ -152,6 +158,7 @@ public:
   virtual void failure(const std::string& filename, std::size_t line, const std::string& message)
   {
     failures_++;
+    ss << boost::stacktrace::stacktrace();
     ss << "Failure: " << filename << ", line " << line << ": " << message << '\n';
   }
 
