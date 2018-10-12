@@ -194,27 +194,31 @@ class XmlResultWriter : public ResultWriter {
 // ----------------------------------------------------------------------------
 
 struct Result {
-    Result(const std::string& testClassName, const std::string& testName, ResultWriter& out) : out_(out), pass_(true) {
-        out_.startTest(testClassName, testName);
+    void start(const std::string& testClassName, const std::string& testName, ResultWriter& out) {
+        out_ = &out;
+        out_->startTest(testClassName, testName);
     }
 
-    ~Result() { out_.endTest(pass_); }
+    void end() {
+        out_->endTest(pass_);
+        out_ = nullptr;
+    }
 
     template <typename T, typename U>
     void addFailure(const char* filename, std::size_t line, T expected, U actual) {
         pass_ = false;
         std::stringstream ss;
         ss << std::setprecision(20) << "failed comparison, expected " << expected << " got " << actual;
-        out_.failure(filename, line, ss.str());
+        out_->failure(filename, line, ss.str());
     }
 
     void addFailure(const char* filename, std::size_t line, const char* message) {
         pass_ = false;
-        out_.failure(filename, line, message);
+        out_->failure(filename, line, message);
     }
 
-    ResultWriter& out_;
-    bool pass_;
+    ResultWriter* out_;
+    bool pass_ = true;
 };
 
 // ----------------------------------------------------------------------------
@@ -229,25 +233,27 @@ class Test {
     virtual ~Test() {}
 
     void run(ResultWriter& out) {
-        Result result(test_unit_class_name_, test_unit_name_, out);
+        testResult_.start(test_unit_class_name_, test_unit_name_, out);
         try {
-            do_run(result);
+            do_run();
         } catch (const ::cpput::AssertionFailureException& e) {
             // skip
         } catch (const std::exception& e) {
-            result.addFailure(__FILE__, __LINE__, std::string("Unexpected exception: ").append(e.what()).c_str());
-        } catch (...) { result.addFailure(__FILE__, __LINE__, "Unspecified exception!"); }
+            testResult_.addFailure(__FILE__, __LINE__, std::string("Unexpected exception: ").append(e.what()).c_str());
+        } catch (...) { testResult_.addFailure(__FILE__, __LINE__, "Unspecified exception!"); }
+        testResult_.end();
     }
 
     Test* next() { return test_unit_next_; }
 
  private:
-    virtual void do_run(Result& testResult_) = 0;
+    virtual void do_run() = 0;
 
- private:
+ protected:
     std::string test_unit_class_name_;
     std::string test_unit_name_;
     Test* test_unit_next_;
+    Result testResult_;
 };
 
 // ----------------------------------------------------------------------------
@@ -324,27 +330,27 @@ inline int runAllTests(ResultWriter& writer) {
         virtual ~group##name##Test() {}                       \
                                                               \
      private:                                                 \
-        virtual void do_run(::cpput::Result& testResult_);    \
+        virtual void do_run();                                \
     } group##name##TestInstance;                              \
-    inline void group##name##Test::do_run(::cpput::Result& testResult_)
+    inline void group##name##Test::do_run()
 
 /// Test case with fixture.
 ///
-#define TEST_F(group, name)                                               \
-    class group##name##FixtureTest : public group {                       \
-     public:                                                              \
-        void do_run(::cpput::Result& testResult_);                        \
-    };                                                                    \
-    class group##name##Test : public ::cpput::Test {                      \
-     public:                                                              \
-        group##name##Test() : Test(#group, #name) {}                      \
-        virtual void do_run(::cpput::Result& testResult_);                \
-    } group##name##TestInstance;                                          \
-    inline void group##name##Test::do_run(::cpput::Result& testResult_) { \
-        group##name##FixtureTest test;                                    \
-        test.do_run(testResult_);                                         \
-    }                                                                     \
-    inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
+#define TEST_F(group, name)                          \
+    class group##name##FixtureTest : public group {  \
+     public:                                         \
+        void do_run();                               \
+    };                                               \
+    class group##name##Test : public ::cpput::Test { \
+     public:                                         \
+        group##name##Test() : Test(#group, #name) {} \
+        virtual void do_run() override;              \
+    } group##name##TestInstance;                     \
+    inline void group##name##Test::do_run() {        \
+        group##name##FixtureTest test;               \
+        test.do_run();                               \
+    }                                                \
+    inline void group##name##FixtureTest::do_run()
 
 // ----------------------------------------------------------------------------
 // Assertion Macros
