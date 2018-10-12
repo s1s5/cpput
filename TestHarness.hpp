@@ -137,6 +137,7 @@ public:
       std::cout << '.';
     else
       std::cout << 'F';
+    std::cout << std::flush;
   }
 
   virtual void failure(const std::string& filename, std::size_t line, const std::string& message)
