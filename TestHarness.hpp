@@ -448,12 +448,12 @@ inline void group##name##FixtureTest::do_run(::cpput::Result& testResult_)
 
 #define ASSERT_NEAR(expected,actual,epsilon) \
 { \
-  double actualTmp = actual; \
-  double expectedTmp = expected; \
-  double diff = expectedTmp - actualTmp; \
-  if ((diff > epsilon) || (-diff > epsilon)) \
+  double _tmp_var_actualTmp = actual; \
+  double _tmp_var_expectedTmp = expected; \
+  double _tmp_var_diff = _tmp_var_expectedTmp - _tmp_var_actualTmp; \
+  if ((_tmp_var_diff > epsilon) || (-_tmp_var_diff > epsilon)) \
   { \
-    testResult_.addFailure(__FILE__, __LINE__, expectedTmp, actualTmp); \
+    testResult_.addFailure(__FILE__, __LINE__, _tmp_var_expectedTmp, _tmp_var_actualTmp); \
     return; \
   } \
 }
