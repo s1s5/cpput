@@ -317,15 +317,14 @@ inline int runAllTests(ResultWriter& writer) {
 }  // namespace cpput
 
 // Convenience macro to get main function.
-#define CPPUT_TEST_MAIN                                     \
-    int main(int argc, char* argv[]) {                      \
-        if (argc == 2 && std::string(argv[1]) == "--xml") { \
-            ::cpput::XmlResultWriter writer;                \
-            return ::cpput::runAllTests(writer);            \
-        }                                                   \
-        ::cpput::TextResultWriter writer;                   \
-        return ::cpput::runAllTests(writer);                \
-    }
+#define CPPUT_TEST_MAIN                                 \
+    if (argc == 2 && std::string(argv[1]) == "--xml") { \
+        ::cpput::XmlResultWriter writer;                \
+        return ::cpput::runAllTests(writer);            \
+    }                                                   \
+    ::cpput::TextResultWriter writer;                   \
+    ::cpput::runAllTests(writer);                       \
+
 
 // ----------------------------------------------------------------------------
 // Test Macros
