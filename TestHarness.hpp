@@ -203,6 +203,9 @@ struct Result {
     }
 
     void start(const std::string& testClassName, const std::string& testName, ResultWriter& out) {
+        test_class_name = testClassName;
+        test_name = testName;
+
         out_ = &out;
         out_->startTest(testClassName, testName);
         current(this);
@@ -225,11 +228,26 @@ struct Result {
         pass_ = false;
         out_->failure(filename, line, message);
     }
+    
+    std::string test_class_name, test_name;
 
     ResultWriter* out_;
     bool pass_ = true;
 };
 
+inline std::string curTestClassName() {
+    if (Result::current()) {
+        return Result::current()->test_class_name;
+    }
+    return "<none>";
+}
+
+inline std::string curTestName() {
+    if (Result::current()) {
+        return Result::current()->test_name;
+    }
+    return "<none>";
+}
 
 // ----------------------------------------------------------------------------
 
