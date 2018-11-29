@@ -220,7 +220,8 @@ struct Result {
     void addFailure(const char* filename, std::size_t line, T expected, U actual) {
         pass_ = false;
         std::stringstream ss;
-        ss << std::setprecision(20) << "failed comparison, expected " << expected << " got " << actual;
+        // ss << std::setprecision(20) << "failed comparison, expected " << expected << " got " << actual;
+        ss << std::setprecision(20) << "failed comparison, expected";
         out_->failure(filename, line, ss.str());
     }
 
