@@ -193,6 +193,21 @@ class XmlResultWriter : public ResultWriter {
 };
 
 // ----------------------------------------------------------------------------
+template <typename T>
+class has_operator_rrshift {
+    typedef char one;
+    typedef long two;
+
+    template <typename C>
+    static one test(decltype(&C::operator << ));
+    template <typename C>
+    static two test(...);
+
+ public:
+    enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
+
 struct Result {
     static Result *current(Result *new_res = nullptr) {
         static Result *cur = nullptr;
@@ -217,10 +232,23 @@ struct Result {
     }
 
     template <typename T, typename U>
-    void addFailure(const char* filename, std::size_t line, T expected, U actual) {
+    typename std::enable_if<
+        (std::is_fundamental<T>::value and std::is_fundamental<U>::value) or
+        (has_operator_rrshift<T>::value and has_operator_rrshift<U>::value), void>::type
+    addFailure(const char* filename, std::size_t line, T expected, U actual) {
         pass_ = false;
         std::stringstream ss;
-        // ss << std::setprecision(20) << "failed comparison, expected " << expected << " got " << actual;
+        ss << std::setprecision(20) << "failed comparison, expected " << expected << " got " << actual;
+        out_->failure(filename, line, ss.str());
+    }
+
+    template <typename T, typename U>
+    typename std::enable_if<not (
+        (std::is_fundamental<T>::value and std::is_fundamental<U>::value) or
+        (has_operator_rrshift<T>::value and has_operator_rrshift<U>::value)), void>::type
+    addFailure(const char* filename, std::size_t line, T expected, U actual) {
+        pass_ = false;
+        std::stringstream ss;
         ss << std::setprecision(20) << "failed comparison, expected";
         out_->failure(filename, line, ss.str());
     }
