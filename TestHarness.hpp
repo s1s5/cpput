@@ -478,4 +478,48 @@ inline int runAllTests(ResultWriter& writer, const std::string &prefix) {
         }                                                                                         \
     }
 
+
+// from https://ideone.com/TvtNO
+template <class Tag>
+struct _cpput_internal_Accessor {
+    static typename Tag::type value;
+};
+
+template <class Tag>
+typename Tag::type _cpput_internal_Accessor<Tag>::value;
+
+template <class Tag, typename Tag::type p>
+struct _cpput_internal_Initializer {
+    _cpput_internal_Initializer() { _cpput_internal_Accessor<Tag>::value = p; }
+    static _cpput_internal_Initializer instance;
+};
+
+template <class Tag, typename Tag::type p>
+_cpput_internal_Initializer<Tag, p> _cpput_internal_Initializer<Tag, p>::instance;
+
+#define CPPUT_DEFINE_ACCESSOR(CLASS, MEMBER, TYPE)                      \
+    struct CLASS ## _member_ ## MEMBER { using type = TYPE CLASS::*; }; \
+    template struct _cpput_internal_Initializer<CLASS ## _member_ ## MEMBER, &CLASS::MEMBER>; \
+    inline auto &MEMBER(CLASS &instance) { return (instance).*_cpput_internal_Accessor<CLASS ## _member_ ## MEMBER>::value; } \
+    inline const auto &MEMBER(const CLASS &instance) { return (instance).*_cpput_internal_Accessor<CLASS ## _member_ ## MEMBER>::value; }
+
+/**
+ * class A {
+ *  public:
+ *     void print() {
+ *         sb_logd("{}", mem0);
+ *     }
+ *  private:
+ *     int mem0{0};
+ * };
+ * 
+ * CPPUT_DEFINE_ACCESSOR(A, mem0, int);
+ *
+ ** USAGE
+ * A a;
+ * a.print();
+ * mem0(a) = 3;
+ * a.print();
+ */
+
 #endif  // CPPUT_TESTHARNESS_HPP
