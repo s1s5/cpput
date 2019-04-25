@@ -129,13 +129,29 @@ class TextResultWriter : public ResultWriter {
         if (s != "") { std::cout << s << std::flush; }
     }
 
-    virtual void startTest(const std::string&, const std::string&) { testCount_++; }
+    virtual void startTest(const std::string&c, const std::string&n) {
+        testCount_++;
+        class_name = c;
+        func_name = n;
+
+        std::cout << class_name << "::" << func_name << " .... ";
+        std::cout << std::flush;
+    }
 
     virtual void endTest(bool success) {
-        if (success)
+#if 0
+        if (success) {
             std::cout << '.';
-        else
+        } else {
             std::cout << 'F';
+        }
+#else
+        if (success) {
+            std::cout << "ok" << std::endl;
+        } else {
+            std::cout << "ng" << std::endl;
+        }
+#endif
         std::cout << std::flush;
     }
 
@@ -152,6 +168,7 @@ class TextResultWriter : public ResultWriter {
     int testCount_;
     int failures_;
     std::stringstream ss;
+    std::string class_name, func_name;
 };
 
 // ----------------------------------------------------------------------------
