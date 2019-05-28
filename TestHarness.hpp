@@ -408,7 +408,7 @@ inline int runAllTests(ResultWriter& writer, const std::string &prefix) {
     if (argc >= 2) {\
     prefix = argv[1];\
     }\
-    ::cpput::runAllTests(writer, prefix);              \
+    return ::cpput::runAllTests(writer, prefix);              \
 
 
 // ----------------------------------------------------------------------------
